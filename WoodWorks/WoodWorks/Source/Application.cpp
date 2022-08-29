@@ -2,6 +2,7 @@
 //#DEFINE GL_STATIC_DRAW onceBut
 
 
+
 //OpenGL Included Files
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -10,6 +11,27 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+
+
+
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+// Error Clearing (After all errors are found and reported clear)
+static void GLClearError()
+{
+	while (glGetError() != GL_NO_ERROR);
+}
+// Error checking and reporting
+static bool GLLogCall(const char* function, const char* file, int line)
+{
+	while (GLenum error = glGetError())
+	{
+		std::cout << "[OpenGL Error] (" << error << ")" << "In Function Call: "<<function << ". In File: " << file << ". Line:" << line << std::endl;
+		return false;
+	}
+	return true;
+}
+// TODO: Make a function that converts the hex error code into real words
 
 struct ShaderProgramSource
 {
@@ -150,24 +172,25 @@ int main()
 	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 	glUseProgram(shader);
 
-       /* Loop until the user closes the window */
-       while (!glfwWindowShouldClose(window))
-       {
-			/* Render here */
-			glClear(GL_COLOR_BUFFER_BIT);
+	/* Loop until the user closes the window */
+	while (!glfwWindowShouldClose(window))
+	{
+		/* Render here */
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+		
 
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		/* Swap front and back buffers */
+		glfwSwapBuffers(window);
 
-			/* Swap front and back buffers */
-			glfwSwapBuffers(window);
+		/* Poll for and process events */
+		glfwPollEvents();
+    }
 
-			/* Poll for and process events */
-			glfwPollEvents();
-       }
+	//Deletes the shaders being used for clean up
+	glDeleteProgram(shader);
 
-	   //Deletes the shaders being used for clean up
-	   glDeleteProgram(shader);
-
-       glfwTerminate();
-       return 0;
+    glfwTerminate();
+    return 0;
 }
