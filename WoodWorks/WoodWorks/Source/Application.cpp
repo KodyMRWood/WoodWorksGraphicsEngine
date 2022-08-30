@@ -125,6 +125,11 @@ int main()
 	if (!glfwInit())
 		return -1;
 
+	/* Set up OpenGL Profile*/
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //(CORE_PROFILE must create a VAO, COMPAT_PROFILE gives a default one)
+
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(1080, 720, "Wood Works", NULL, NULL);
 	if (!window)
@@ -153,7 +158,13 @@ int main()
 		2,3,0
 	};
 
-	// Vertex Buffer (A chunk of data that hold vertex data)
+	// Generating a Vertex Array Object (VAO)
+	unsigned int vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
+
+
+	// Vertex Buffer (Data Structure that hold vertex data)
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -161,7 +172,7 @@ int main()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-	// Index Buffer (A chunk of data that hold the index of vertices)
+	// Index Buffer (Data Structure that hold the index of vertices)
 	unsigned int ibo;
 	glGenBuffers(1, &ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -180,6 +191,12 @@ int main()
 	ASSERT(location != -1); //Error check, Uniform not found
 	GLCall(glUniform4f(location, 0.2f, 0.8f, 0.4f, 1.0f));
 
+	// Bind VAO
+	GLCall(glBindVertexArray(0));
+	GLCall(glUseProgram(shader));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	
 
 	float r = 0.0f;
 	float increment = 0.05f;
@@ -189,6 +206,12 @@ int main()
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 		
+		// Rendering Process (Use shader, send Uniforms(done once a draw call), bind vao, draw call)
+		GLCall(glUseProgram(shader));
+		GLCall(glUniform4f(location, r, 0.8f, 0.4f, 1.0f));
+		GLCall(glBindVertexArray(vao));
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
 		if (r > 1.0f)
 		{
 			increment = -0.05;
@@ -199,9 +222,6 @@ int main()
 		}
 		r += increment;
 
-		GLCall(glUniform4f(location, r, 0.8f, 0.4f, 1.0f));
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
-		
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
