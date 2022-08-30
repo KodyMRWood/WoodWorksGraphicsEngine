@@ -1,7 +1,10 @@
+///
+//
+// Author: Kody M. R. Wood
+//
+///
 //Preprocessers
 //#DEFINE GL_STATIC_DRAW onceBut
-
-
 
 //OpenGL Included Files
 #include <GL/glew.h>
@@ -132,11 +135,12 @@ int main()
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // Change sync of refresh rate to the monitor 1 = perfectsync, 1< slower
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "Error GLEW did not Initialize!" << std::endl;
 	}
-	std::cout << glGetString(GL_VERSION) << std::endl;
+	std::cout << glGetString(GL_VERSION) << std::endl; //Output GL Version to console
 
 	float vertPositions[] = {
 		-0.5f, -0.5f,
@@ -144,7 +148,6 @@ int main()
 		 0.5f, 0.5f,
 		-0.5f, 0.5f,
 	};
-
 	unsigned int indices[] = {
 		0,1,2,
 		2,3,0
@@ -165,20 +168,39 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	ShaderProgramSource source = ParseShader("Resources/Shader/Basic.shader");
-	std::cout << "VERTEX" << std::endl;
-	std::cout << source.VertexSource << std::endl;
-	std::cout << "FRAGMENT" << std::endl;
-	std::cout << source.FragmentSource << std::endl;
+	//Outputs the vertex and fragment shader (Maybe change to somehow get the name of the shader
+	//std::cout << "VERTEX" << std::endl;
+	//std::cout << source.VertexSource << std::endl;
+	//std::cout << "FRAGMENT" << std::endl;
+	//std::cout << source.FragmentSource << std::endl;
 	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 	glUseProgram(shader);
 
+	GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+	ASSERT(location != -1); //Error check, Uniform not found
+	GLCall(glUniform4f(location, 0.2f, 0.8f, 0.4f, 1.0f));
+
+
+	float r = 0.0f;
+	float increment = 0.05f;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+		if (r > 1.0f)
+		{
+			increment = -0.05;
+		}
+		else if (r < 0.0f)
+		{
+			increment = 0.05;
+		}
+		r += increment;
+
+		GLCall(glUniform4f(location, r, 0.8f, 0.4f, 1.0f));
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 		
 
 		/* Swap front and back buffers */
