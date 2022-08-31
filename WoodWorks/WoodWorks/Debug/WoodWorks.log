@@ -1,4 +1,4 @@
 ﻿  Application.cpp
-D:\Repos\WoodWorks\WoodWorksGraphicsEngine\WoodWorks\WoodWorks\Source\Application.cpp(216,21): warning C4305: '=': truncation from 'double' to 'float'
-D:\Repos\WoodWorks\WoodWorksGraphicsEngine\WoodWorks\WoodWorks\Source\Application.cpp(220,20): warning C4305: '=': truncation from 'double' to 'float'
+D:\Repos\WoodWorks\WoodWorksGraphicsEngine\WoodWorks\WoodWorks\Source\Application.cpp(201,21): warning C4305: '=': truncation from 'double' to 'float'
+D:\Repos\WoodWorks\WoodWorksGraphicsEngine\WoodWorks\WoodWorks\Source\Application.cpp(205,20): warning C4305: '=': truncation from 'double' to 'float'
   WoodWorks.vcxproj -> D:\Repos\WoodWorks\WoodWorksGraphicsEngine\WoodWorks\Debug\WoodWorks.exe

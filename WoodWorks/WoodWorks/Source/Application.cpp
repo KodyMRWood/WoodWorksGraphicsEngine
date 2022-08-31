@@ -1,8 +1,9 @@
-///
+///////
 //
 // Author: Kody M. R. Wood
 //
-///
+///////
+
 //Preprocessers
 //#DEFINE GL_STATIC_DRAW onceBut
 
@@ -15,26 +16,11 @@
 #include <string>
 #include <sstream>
 
+#include "Renderer.h"
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
 
 
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-// Error Clearing (After all errors are found and reported clear)
-static void GLClearError()
-{
-	while (glGetError() != GL_NO_ERROR);
-}
-// Error checking and reporting
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-	while (GLenum error = glGetError())
-	{
-		std::cout << "[OpenGL Error] (" << error << ")" << "In Function Call: "<<function << ". In File: " << file << ". Line:" << line << std::endl;
-		return false;
-	}
-	return true;
-}
-// TODO: Make a function that converts the hex error code into real words
 
 struct ShaderProgramSource
 {
@@ -146,7 +132,7 @@ int main()
 		std::cout << "Error GLEW did not Initialize!" << std::endl;
 	}
 	std::cout << glGetString(GL_VERSION) << std::endl; //Output GL Version to console
-
+	{
 	float vertPositions[] = {
 		-0.5f, -0.5f,
 		 0.5f, -0.5f,
@@ -165,18 +151,13 @@ int main()
 
 
 	// Vertex Buffer (Data Structure that hold vertex data)
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 6 * 2* sizeof(float), vertPositions, GL_STATIC_DRAW);
+	VertexBuffer vb(vertPositions, 4 * 2 * sizeof(float));
+
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
 	// Index Buffer (Data Structure that hold the index of vertices)
-	unsigned int ibo;
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+	IndexBuffer ib(indices, 6);
 
 	ShaderProgramSource source = ParseShader("Resources/Shader/Basic.shader");
 	//Outputs the vertex and fragment shader (Maybe change to somehow get the name of the shader
@@ -196,7 +177,7 @@ int main()
 	GLCall(glUseProgram(shader));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-	
+
 
 	float r = 0.0f;
 	float increment = 0.05f;
@@ -205,11 +186,14 @@ int main()
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
-		
+
 		// Rendering Process (Use shader, send Uniforms(done once a draw call), bind vao, draw call)
 		GLCall(glUseProgram(shader));
 		GLCall(glUniform4f(location, r, 0.8f, 0.4f, 1.0f));
+
 		GLCall(glBindVertexArray(vao));
+		ib.Bind();
+
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 		if (r > 1.0f)
@@ -228,11 +212,11 @@ int main()
 
 		/* Poll for and process events */
 		glfwPollEvents();
-    }
+	}
 
 	//Deletes the shaders being used for clean up
 	glDeleteProgram(shader);
-
+	}
     glfwTerminate();
     return 0;
 }
