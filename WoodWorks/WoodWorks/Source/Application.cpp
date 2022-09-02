@@ -5,7 +5,6 @@
 ///////
 
 //Preprocessers
-//#DEFINE GL_STATIC_DRAW onceBut
 
 //OpenGL Included Files
 #include <GL/glew.h>
@@ -18,7 +17,9 @@
 
 #include "Renderer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 #include "VertexBuffer.h"
+
 
 
 
@@ -27,7 +28,6 @@ struct ShaderProgramSource
 	std::string VertexSource;
 	std::string FragmentSource;
 };
-
 
 static ShaderProgramSource ParseShader(const std::string& filepath)
 {
@@ -60,7 +60,6 @@ static ShaderProgramSource ParseShader(const std::string& filepath)
 	}
 	return { ss[0].str(), ss[1].str() };
 }
-
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -145,22 +144,19 @@ int main()
 	};
 
 	// Generating a Vertex Array Object (VAO)
-	unsigned int vao;
-	GLCall(glGenVertexArrays(1, &vao));
-	GLCall(glBindVertexArray(vao));
-
+	VertexArray va;
 
 	// Vertex Buffer (Data Structure that hold vertex data)
 	VertexBuffer vb(vertPositions, 4 * 2 * sizeof(float));
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+	VertexBufferLayout layout;
+	layout.Push<float>(2);
+	va.AddBuffer(vb, layout);
 
 	// Index Buffer (Data Structure that hold the index of vertices)
 	IndexBuffer ib(indices, 6);
 
 	ShaderProgramSource source = ParseShader("Resources/Shader/Basic.shader");
-	//Outputs the vertex and fragment shader (Maybe change to somehow get the name of the shader
+	//Outputs the vertex and fragment shader (Maybe change to somehow get the name of the shader)
 	//std::cout << "VERTEX" << std::endl;
 	//std::cout << source.VertexSource << std::endl;
 	//std::cout << "FRAGMENT" << std::endl;
@@ -172,13 +168,7 @@ int main()
 	ASSERT(location != -1); //Error check, Uniform not found
 	GLCall(glUniform4f(location, 0.2f, 0.8f, 0.4f, 1.0f));
 
-	// Bind VAO
-	GLCall(glBindVertexArray(0));
-	GLCall(glUseProgram(shader));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-
+	va.Unbind();
 	float r = 0.0f;
 	float increment = 0.05f;
 	/* Loop until the user closes the window */
@@ -191,21 +181,20 @@ int main()
 		GLCall(glUseProgram(shader));
 		GLCall(glUniform4f(location, r, 0.8f, 0.4f, 1.0f));
 
-		GLCall(glBindVertexArray(vao));
+		va.Bind();
 		ib.Bind();
 
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 		if (r > 1.0f)
 		{
-			increment = -0.05;
+			increment = -0.05f;
 		}
 		else if (r < 0.0f)
 		{
-			increment = 0.05;
+			increment = 0.05f;
 		}
 		r += increment;
-
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
