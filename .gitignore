@@ -32,4 +32,9 @@
 *.app
 
 # Log Files
-* .tlog
+*.tlog
+
+# Other Added Files
+*.ipch
+*.db
+*.opendb
